@@ -1,0 +1,90 @@
+<app-modal title="Elegir ejercicio" [subtitle]="results().length + ' disponibles'" (close)="close.emit()">
+  @if (!creating()) {
+    <div class="tools">
+      <input
+        type="search"
+        placeholder="Buscar ejercicio…"
+        autocapitalize="off"
+        [value]="term()"
+        (input)="setTerm($any($event.target).value)"
+      />
+      <div class="scroll-x filters">
+        <button class="chip" [class.chip--active]="muscle() === 'todos'" (click)="muscle.set('todos')">
+          Todos
+        </button>
+        @for (g of groups; track g) {
+          <button class="chip" [class.chip--active]="muscle() === g" (click)="muscle.set(g)">
+            {{ g | muscle: 'icon' }} {{ g | muscle }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <ul class="list">
+      @for (e of results(); track e.id) {
+        <li>
+          <button class="row" type="button" (click)="pick.emit(e)">
+            <i class="dot" [style.background]="e.muscle_group | muscle: 'color'"></i>
+            <span class="name">
+              {{ e.name }}
+              @if (e.user_id) { <em class="own">propio</em> }
+            </span>
+            <span class="dim">{{ e.muscle_group | muscle }}</span>
+          </button>
+        </li>
+      } @empty {
+        <li class="none dim">Ningún ejercicio coincide. Créalo abajo.</li>
+      }
+    </ul>
+  } @else {
+    <div class="form">
+      <label>
+        <span class="label">Nombre</span>
+        <input name="newName" [(ngModel)]="newName" placeholder="Press inclinado en Smith" />
+      </label>
+      <label>
+        <span class="label">Grupo muscular</span>
+        <select name="newMuscle" [(ngModel)]="newMuscle">
+          @for (g of groups; track g) {
+            <option [value]="g">{{ g | muscle }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span class="label">Material</span>
+        <select name="newEquipment" [(ngModel)]="newEquipment">
+          <option value="barra">Barra</option>
+          <option value="mancuerna">Mancuerna</option>
+          <option value="maquina">Máquina</option>
+          <option value="polea">Polea</option>
+          <option value="peso_corporal">Peso corporal</option>
+          <option value="kettlebell">Kettlebell</option>
+          <option value="banda">Banda</option>
+          <option value="cardio">Cardio</option>
+          <option value="otro">Otro</option>
+        </select>
+      </label>
+      <label>
+        <span class="label">Tipo</span>
+        <select name="newKind" [(ngModel)]="newKind">
+          <option value="fuerza">Fuerza (peso × reps)</option>
+          <option value="cardio">Cardio (tiempo y distancia)</option>
+          <option value="isometrico">Isométrico (tiempo)</option>
+        </select>
+      </label>
+    </div>
+  }
+
+  <div modal-footer class="foot">
+    @if (!creating()) {
+      <button class="btn btn--ghost btn--block" type="button" (click)="creating.set(true)">
+        + Crear ejercicio
+      </button>
+    } @else {
+      <button class="btn btn--ghost" type="button" (click)="creating.set(false)">Volver</button>
+      <button class="btn btn--primary" type="button" [disabled]="saving()" (click)="createExercise()">
+        Guardar y usar
+      </button>
+    }
+  </div>
+</app-modal>
