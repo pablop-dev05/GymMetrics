@@ -57,39 +57,62 @@
               <button type="button" class="rm" (click)="drop(i)" aria-label="Quitar">✕</button>
             </div>
           </div>
-          <div class="targets">
-            <label>
-              <span class="label">Series</span>
-              <input type="number" inputmode="numeric" [value]="it.target_sets ?? ''"
-                     (input)="patch(i, 'target_sets', $any($event.target).value)" />
-            </label>
-            @if (it.exercise.tracks_reps) {
+          @if (it.exercise.kind === 'cardio') {
+            <div class="targets">
               <label>
-                <span class="label">Reps</span>
-                <input type="number" inputmode="numeric" [value]="it.target_reps ?? ''"
-                       (input)="patch(i, 'target_reps', $any($event.target).value)" />
+                <span class="label">Minutos</span>
+                <input type="number" inputmode="numeric" [value]="(it.target_duration_seconds ?? 0) / 60 || ''"
+                       (input)="patchMinutes(i, $any($event.target).value)" />
               </label>
-            }
-            @if (it.exercise.tracks_weight) {
+            </div>
+            <div class="ilevels">
+              @for (lvl of intensities; track lvl) {
+                <button
+                  type="button"
+                  class="ilevel"
+                  [class.ilevel--on]="it.target_intensity === lvl"
+                  [style.--tint]="lvl | intensity: 'color'"
+                  (click)="setIntensity(i, lvl)"
+                >
+                  {{ lvl | intensity }}
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="targets">
               <label>
-                <span class="label">Peso kg</span>
-                <input type="number" inputmode="decimal" [value]="it.target_weight_kg ?? ''"
-                       (input)="patch(i, 'target_weight_kg', $any($event.target).value)" />
+                <span class="label">Series</span>
+                <input type="number" inputmode="numeric" [value]="it.target_sets ?? ''"
+                       (input)="patch(i, 'target_sets', $any($event.target).value)" />
               </label>
-            }
-            @if (it.exercise.tracks_duration) {
+              @if (it.exercise.tracks_reps) {
+                <label>
+                  <span class="label">Reps</span>
+                  <input type="number" inputmode="numeric" [value]="it.target_reps ?? ''"
+                         (input)="patch(i, 'target_reps', $any($event.target).value)" />
+                </label>
+              }
+              @if (it.exercise.tracks_weight) {
+                <label>
+                  <span class="label">Peso kg</span>
+                  <input type="number" inputmode="decimal" [value]="it.target_weight_kg ?? ''"
+                         (input)="patch(i, 'target_weight_kg', $any($event.target).value)" />
+                </label>
+              }
+              @if (it.exercise.tracks_duration) {
+                <label>
+                  <span class="label">Seg.</span>
+                  <input type="number" inputmode="numeric" [value]="it.target_duration_seconds ?? ''"
+                         (input)="patch(i, 'target_duration_seconds', $any($event.target).value)" />
+                </label>
+              }
               <label>
-                <span class="label">Seg.</span>
-                <input type="number" inputmode="numeric" [value]="it.target_duration_seconds ?? ''"
-                       (input)="patch(i, 'target_duration_seconds', $any($event.target).value)" />
+                <span class="label">Descanso</span>
+                <input type="number" inputmode="numeric" [value]="it.rest_seconds ?? ''"
+                       (input)="patch(i, 'rest_seconds', $any($event.target).value)" />
               </label>
-            }
-            <label>
-              <span class="label">Descanso</span>
-              <input type="number" inputmode="numeric" [value]="it.rest_seconds ?? ''"
-                     (input)="patch(i, 'rest_seconds', $any($event.target).value)" />
-            </label>
-          </div>
+            </div>
+          }
         </div>
       } @empty {
         <p class="none dim">Aún no has añadido ejercicios.</p>
