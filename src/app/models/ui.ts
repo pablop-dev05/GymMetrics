@@ -13,7 +13,7 @@ export const MUSCLE_META: Record<MuscleGroup, { label: string; color: string; ic
   gluteo:         { label: 'Glúteo',       color: '#f472b6', icon: '🍑' },
   gemelo:         { label: 'Gemelo',       color: '#22d3ee', icon: '🐆' },
   core:           { label: 'Core',         color: '#fbbf24', icon: '🧱' },
-  cardio:         { label: 'Cardio',       color: '#fb7185', icon: '❤️‍🔥' },
+  cardio:         { label: 'Cardio',       color: '#e879f9', icon: '❤️‍🔥' },
   cuerpo_completo:{ label: 'Full body',    color: '#94a3b8', icon: '🔥' },
 };
 
