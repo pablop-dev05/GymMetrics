@@ -1,0 +1,23 @@
+<main class="viewport">
+  <router-outlet />
+</main>
+
+<nav class="tabbar" aria-label="Navegación principal">
+  <div class="rail">
+    @for (tab of tabs; track tab.path) {
+      <a
+        class="tab"
+        [routerLink]="tab.path"
+        routerLinkActive="tab--on"
+        #rla="routerLinkActive"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+      >
+        <span class="halo"></span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path [attr.d]="tab.icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="txt">{{ tab.label }}</span>
+      </a>
+    }
+  </div>
+</nav>
