@@ -1,0 +1,126 @@
+<app-modal
+  [title]="isEdit() ? 'Editar serie' : 'Nueva serie'"
+  [subtitle]="exercise().name"
+  (close)="close.emit()"
+>
+  <div class="fields">
+    @if (exercise().tracks_weight) {
+      <div class="field">
+        <span class="label">Peso ({{ unit() }})</span>
+        <div class="stepper">
+          <button type="button" (click)="step('weight', -2.5)" aria-label="Bajar peso">−</button>
+          <input
+            class="field-num"
+            type="number"
+            inputmode="decimal"
+            step="0.5"
+            [value]="weight() ?? ''"
+            (input)="onNumber('weight', $any($event.target).value)"
+            placeholder="0"
+          />
+          <button type="button" (click)="step('weight', 2.5)" aria-label="Subir peso">+</button>
+        </div>
+        <div class="quick">
+          @for (d of [1.25, 5, 10]; track d) {
+            <button class="chip" type="button" (click)="step('weight', d)">+{{ d }}</button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (exercise().tracks_reps) {
+      <div class="field">
+        <span class="label">Repeticiones</span>
+        <div class="stepper">
+          <button type="button" (click)="step('reps', -1)" aria-label="Menos reps">−</button>
+          <input
+            class="field-num"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            [value]="reps() ?? ''"
+            (input)="onNumber('reps', $any($event.target).value)"
+            placeholder="0"
+          />
+          <button type="button" (click)="step('reps', 1)" aria-label="Más reps">+</button>
+        </div>
+      </div>
+    }
+
+    @if (exercise().tracks_duration) {
+      <div class="field">
+        <span class="label">Tiempo · {{ seconds() ?? 0 | duration: 'clock' }}</span>
+        <div class="stepper">
+          <button type="button" (click)="step('seconds', -15)" aria-label="Menos tiempo">−</button>
+          <input
+            class="field-num"
+            type="number"
+            inputmode="numeric"
+            step="5"
+            [value]="seconds() ?? ''"
+            (input)="onNumber('seconds', $any($event.target).value)"
+            placeholder="segundos"
+          />
+          <button type="button" (click)="step('seconds', 15)" aria-label="Más tiempo">+</button>
+        </div>
+        <div class="quick">
+          @for (d of [30, 60, 300]; track d) {
+            <button class="chip" type="button" (click)="step('seconds', d)">+{{ d }}s</button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (exercise().tracks_distance) {
+      <div class="field">
+        <span class="label">Distancia (m)</span>
+        <input
+          class="field-num"
+          type="number"
+          inputmode="decimal"
+          [value]="distance() ?? ''"
+          (input)="onNumber('distance', $any($event.target).value)"
+          placeholder="0"
+        />
+      </div>
+    }
+
+    <div class="field">
+      <span class="label">Esfuerzo percibido (RPE)</span>
+      <div class="scroll-x">
+        @for (v of [6, 7, 7.5, 8, 8.5, 9, 9.5, 10]; track v) {
+          <button
+            class="chip"
+            type="button"
+            [class.chip--active]="rpe() === v"
+            (click)="rpe.set(rpe() === v ? null : v)"
+          >
+            {{ v }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="toggle">
+      <span>
+        <strong>Serie de calentamiento</strong>
+        <em class="dim">No cuenta para el volumen</em>
+      </span>
+      <input type="checkbox" [checked]="warmup()" (change)="warmup.set($any($event.target).checked)" />
+      <i class="track" aria-hidden="true"></i>
+    </label>
+
+    @if (volume(); as v) {
+      <p class="volume num">Volumen de la serie: <b>{{ v }} {{ unit() }}</b></p>
+    }
+  </div>
+
+  <div modal-footer class="foot">
+    @if (isEdit()) {
+      <button class="btn btn--danger" type="button" (click)="delete()">Borrar</button>
+    }
+    <button class="btn btn--primary" type="button" (click)="submit()">
+      {{ isEdit() ? 'Guardar' : 'Añadir serie' }}
+    </button>
+  </div>
+</app-modal>
