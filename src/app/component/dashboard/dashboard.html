@@ -68,6 +68,42 @@
     </section>
   }
 
+  <!-- Cardio del día -->
+  @if (m.cardio; as c) {
+    <section class="glass-card cardio">
+      <div class="card-head">
+        <h2>Cardio</h2>
+        <span class="label">{{ c.sesiones }} {{ c.sesiones === 1 ? 'sesión' : 'sesiones' }}</span>
+      </div>
+
+      <p class="time num">{{ c.seconds | duration }}</p>
+
+      @if (cardioSplit().length) {
+        <div class="bar" role="img" aria-label="Reparto del tiempo por intensidad">
+          @for (row of cardioSplit(); track row.key) {
+            <span
+              class="seg"
+              [style.width.%]="row.pct"
+              [style.background]="row.key | intensity: 'color'"
+              [title]="(row.key | intensity) + ': ' + (row.seconds | duration)"
+            ></span>
+          }
+        </div>
+        <ul class="ilegend">
+          @for (row of cardioSplit(); track row.key) {
+            <li>
+              <i [style.background]="row.key | intensity: 'color'"></i>
+              <span>{{ row.key | intensity }}</span>
+              <b class="num">{{ row.seconds | duration: 'compact' }}</b>
+            </li>
+          }
+        </ul>
+      }
+
+      <p class="week dim">{{ cardioWeekMinutes() }} min en los últimos 7 días</p>
+    </section>
+  }
+
   <!-- Volumen semanal -->
   <section class="glass-card">
     <div class="card-head">
