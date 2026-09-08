@@ -1,0 +1,57 @@
+<header class="hero glass-card">
+  <div class="avatar">{{ initials() }}</div>
+  <h1>{{ auth.displayName() }}</h1>
+  <p class="dim">{{ auth.user()?.email }}</p>
+</header>
+
+<section class="glass-card block">
+  <h2>Ajustes</h2>
+
+  <label>
+    <span class="label">Nombre</span>
+    <input name="name" [(ngModel)]="name" placeholder="Tu nombre" />
+  </label>
+
+  <label>
+    <span class="label">Objetivo semanal (entrenos)</span>
+    <input name="goal" type="number" inputmode="numeric" min="0" max="14" [(ngModel)]="goal" />
+  </label>
+
+  <div class="field">
+    <span class="label">Unidad de peso</span>
+    <div class="units">
+      <button class="chip" [class.chip--active]="auth.unit() === 'kg'" (click)="setUnit('kg')">
+        Kilogramos
+      </button>
+      <button class="chip" [class.chip--active]="auth.unit() === 'lb'" (click)="setUnit('lb')">
+        Libras
+      </button>
+    </div>
+  </div>
+
+  <button class="btn btn--primary btn--block" type="button" [disabled]="saving()" (click)="save()">
+    Guardar cambios
+  </button>
+</section>
+
+<section class="glass-card block">
+  <h2>Tus récords</h2>
+  @for (r of records(); track r.exercise_id) {
+    <div class="rec">
+      <i class="dot" [style.background]="r.muscle_group | muscle: 'color'"></i>
+      <div class="txt">
+        <strong>{{ r.exercise_name }}</strong>
+        <span class="dim">{{ r.achieved_on | smartDate }}</span>
+      </div>
+      <div class="val">
+        <span class="num">{{ r.max_weight_kg | weight }}</span>
+        <span class="label">1RM {{ r.est_1rm_kg | weight: { decimals: 0 } }}</span>
+      </div>
+    </div>
+  } @empty {
+    <p class="dim empty">Registra series con peso y aquí aparecerán tus mejores marcas.</p>
+  }
+</section>
+
+<button class="btn btn--ghost btn--block out" type="button" (click)="signOut()">Cerrar sesión</button>
+<p class="version dim">GymMetrics · datos en tu cuenta de Supabase</p>
