@@ -6,7 +6,7 @@
   </div>
   <p class="muted totals num">
     {{ totals().sets }} series · {{ totals().volume | weight }}
-    @if (totals().seconds) { · {{ totals().seconds | duration }} }
+    @if (totals().cardioSeconds) { · {{ totals().cardioSeconds | duration }} de cardio }
   </p>
 </header>
 
@@ -36,51 +36,90 @@
     </header>
 
     @if (b.sets.length) {
-      <table class="sets">
-        <thead>
-          <tr>
-            <th>#</th>
-            @if (b.exercise.tracks_weight) { <th>Peso</th> }
-            @if (b.exercise.tracks_reps) { <th>Reps</th> }
-            @if (b.exercise.tracks_duration) { <th>Tiempo</th> }
-            <th class="r">Vol.</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (s of b.sets; track s.id) {
-            <tr [class.warm]="s.is_warmup" (click)="openSet(b.exercise, s)">
-              <td class="idx">
-                @if (s.is_warmup) { <span class="w">W</span> } @else { {{ s.set_number }} }
-              </td>
-              @if (b.exercise.tracks_weight) {
-                <td class="num">{{ s.weight_kg | weight: { unit: false } }}</td>
-              }
-              @if (b.exercise.tracks_reps) {
-                <td class="num">{{ s.reps ?? '—' }}</td>
-              }
-              @if (b.exercise.tracks_duration) {
-                <td class="num">{{ s.duration_seconds | duration: 'clock' }}</td>
-              }
-              <td class="num r dim">
-                @if (!s.is_warmup && s.weight_kg && s.reps) {
-                  {{ s.weight_kg * s.reps | weight: { decimals: 0 } }}
-                } @else { — }
-              </td>
+      @if (isCardio(b)) {
+        <!-- Cardio: tiempo e intensidad, sin peso ni repeticiones -->
+        <table class="sets">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tiempo</th>
+              <th class="r">Intensidad</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (s of b.sets; track s.id) {
+              <tr (click)="openSet(b.exercise, s)">
+                <td class="idx">{{ s.set_number }}</td>
+                <td class="num">{{ s.duration_seconds | duration: 'clock' }}</td>
+                <td class="r">
+                  @if (s.intensity) {
+                    <span class="tag" [style.--tint]="s.intensity | intensity: 'color'">
+                      {{ s.intensity | intensity }}
+                    </span>
+                  } @else {
+                    <span class="dim">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
 
-      <div class="block-foot">
-        <span class="label">
-          Top {{ b.topWeightKg | weight }} · Volumen {{ b.volumeKg | weight: { decimals: 0 } }}
-        </span>
-      </div>
+        <div class="block-foot">
+          <span class="label">
+            Total {{ b.totalSeconds | duration }}
+            @if (b.topIntensity) { · máx. {{ b.topIntensity | intensity }} }
+          </span>
+        </div>
+      } @else {
+        <table class="sets">
+          <thead>
+            <tr>
+              <th>#</th>
+              @if (b.exercise.tracks_weight) { <th>Peso</th> }
+              @if (b.exercise.tracks_reps) { <th>Reps</th> }
+              @if (b.exercise.tracks_duration) { <th>Tiempo</th> }
+              <th class="r">Vol.</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of b.sets; track s.id) {
+              <tr [class.warm]="s.is_warmup" (click)="openSet(b.exercise, s)">
+                <td class="idx">
+                  @if (s.is_warmup) { <span class="w">W</span> } @else { {{ s.set_number }} }
+                </td>
+                @if (b.exercise.tracks_weight) {
+                  <td class="num">{{ s.weight_kg | weight: { unit: false } }}</td>
+                }
+                @if (b.exercise.tracks_reps) {
+                  <td class="num">{{ s.reps ?? '—' }}</td>
+                }
+                @if (b.exercise.tracks_duration) {
+                  <td class="num">{{ s.duration_seconds | duration: 'clock' }}</td>
+                }
+                <td class="num r dim">
+                  @if (!s.is_warmup && s.weight_kg && s.reps) {
+                    {{ s.weight_kg * s.reps | weight: { decimals: 0 } }}
+                  } @else { — }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="block-foot">
+          <span class="label">
+            Top {{ b.topWeightKg | weight }} · Volumen {{ b.volumeKg | weight: { decimals: 0 } }}
+          </span>
+        </div>
+      }
     } @else {
-      <p class="hint dim">Sin series todavía.</p>
+      <p class="hint dim">{{ isCardio(b) ? 'Sin sesiones todavía.' : 'Sin series todavía.' }}</p>
     }
 
-    <button class="add" type="button" (click)="openNewSet(b.exercise)">+ Añadir serie</button>
+    <button class="add" type="button" (click)="openNewSet(b.exercise)">
+      {{ isCardio(b) ? '+ Añadir sesión' : '+ Añadir serie' }}
+    </button>
   </section>
 } @empty {
   @if (!loading()) {

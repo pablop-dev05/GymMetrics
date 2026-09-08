@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
-import { Exercise, RoutineFull, WorkoutSet } from '../../models/db';
+import { Exercise, ExerciseBlock, RoutineFull, WorkoutSet } from '../../models/db';
 import { addDays, toISODate, weekdayIndex } from '../../models/ui';
 import { RoutineService } from '../../services/routine.service';
 import { ToastService } from '../../services/toast.service';
 import { WorkoutService } from '../../services/workout.service';
 import { DurationPipe } from '../../pipes/duration.pipe';
+import { IntensityPipe } from '../../pipes/intensity.pipe';
 import { MusclePipe } from '../../pipes/muscle.pipe';
 import { SmartDatePipe } from '../../pipes/smart-date.pipe';
 import { WeightPipe } from '../../pipes/weight.pipe';
@@ -17,7 +18,7 @@ import { SetEditor } from '../set-editor/set-editor';
   selector: 'app-workout',
   imports: [
     EmptyState, ExercisePicker, SetEditor,
-    DurationPipe, MusclePipe, SmartDatePipe, WeightPipe,
+    DurationPipe, IntensityPipe, MusclePipe, SmartDatePipe, WeightPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workout.html',
@@ -51,9 +52,15 @@ export class Workout implements OnDestroy {
     return {
       sets: blocks.reduce((t, b) => t + b.sets.filter((s) => !s.is_warmup).length, 0),
       volume: blocks.reduce((t, b) => t + b.volumeKg, 0),
-      seconds: blocks.reduce((t, b) => t + b.totalSeconds, 0),
+      cardioSeconds: blocks
+        .filter((b) => b.exercise.kind === 'cardio')
+        .reduce((t, b) => t + b.totalSeconds, 0),
     };
   });
+
+  protected isCardio(block: ExerciseBlock): boolean {
+    return block.exercise.kind === 'cardio';
+  }
 
   // -- Cronómetro de descanso ---------------------------------------------------
   private readonly tick = signal(0);
@@ -121,7 +128,8 @@ export class Workout implements OnDestroy {
         await this.service.updateSet(ctx.set.id, values);
       } else {
         await this.service.addSet(ctx.exercise, values);
-        this.startRest();
+        // Tras el cardio no se cronometra descanso: la sesión ya se cronometró entera.
+        if (ctx.exercise.kind !== 'cardio') this.startRest();
       }
       this.editor.set(null);
     } catch (e) {
