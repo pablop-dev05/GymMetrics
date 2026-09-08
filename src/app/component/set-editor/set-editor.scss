@@ -104,3 +104,104 @@
   .btn { flex: 1; }
   .btn--danger { flex: 0 0 34%; }
 }
+
+// =============================================================================
+// Cardio
+// =============================================================================
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  transition: border-color 0.3s, background 0.3s;
+
+  .clock {
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--on {
+    border-color: rgba(56, 226, 196, 0.5);
+    background: rgba(56, 226, 196, 0.08);
+
+    .clock {
+      color: var(--mint);
+      text-shadow: 0 0 26px rgba(56, 226, 196, 0.5);
+      animation: tick 1s steps(2, jump-none) infinite;
+    }
+  }
+}
+
+@keyframes tick { 50% { opacity: 0.82; } }
+
+.timer-ops {
+  display: flex;
+  gap: var(--sp-2);
+  width: 100%;
+
+  .btn { flex: 1; min-height: 46px; }
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-2);
+}
+
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+
+  strong { font-size: 14px; font-weight: 650; }
+  em { font-size: 11px; font-style: normal; color: var(--text-3); }
+
+  // Barras crecientes: la primera opción enciende una, la última las cuatro
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+    margin-bottom: 2px;
+
+    i {
+      width: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    i:nth-child(1) { height: 40%; }
+    i:nth-child(2) { height: 60%; }
+    i:nth-child(3) { height: 80%; }
+    i:nth-child(4) { height: 100%; }
+  }
+
+  &--on {
+    background: color-mix(in srgb, var(--tint) 20%, transparent);
+    border-color: color-mix(in srgb, var(--tint) 60%, transparent);
+
+    em { color: var(--text-2); }
+    .bars i { background: var(--tint); box-shadow: 0 0 8px var(--tint); }
+  }
+}
+
+// Cada nivel enciende tantas barras como su posición en la rejilla
+.levels .level:nth-child(1).level--on .bars i:nth-child(n + 2),
+.levels .level:nth-child(2).level--on .bars i:nth-child(n + 3),
+.levels .level:nth-child(3).level--on .bars i:nth-child(n + 4) {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
