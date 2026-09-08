@@ -1,0 +1,96 @@
+<header class="top">
+  <div>
+    <p class="label">Tu semana</p>
+    <h1>Rutinas</h1>
+  </div>
+  <button class="new" type="button" (click)="editing.set(null)" aria-label="Nueva rutina">+</button>
+</header>
+
+<!-- Tira semanal -->
+<section class="week glass-soft">
+  @for (col of week(); track col.day) {
+    <div class="col" [class.col--today]="col.day === today">
+      <span class="d">{{ col.day | weekday }}</span>
+      <div class="marks">
+        @for (r of col.routines; track r.id) {
+          <button
+            class="mark"
+            type="button"
+            [style.background]="r.color"
+            [title]="r.name"
+            (click)="editing.set(r)"
+          ></button>
+        } @empty {
+          <span class="rest-day">·</span>
+        }
+      </div>
+    </div>
+  }
+</section>
+
+<!-- Lista de rutinas -->
+@for (r of service.routines(); track r.id) {
+  <article class="routine glass-card" [style.--tint]="r.color">
+    <header>
+      <span class="bar"></span>
+      <div class="title">
+        <h2>{{ r.name }}</h2>
+        @if (r.description) { <p class="dim">{{ r.description }}</p> }
+      </div>
+      <button class="edit" type="button" (click)="editing.set(r)" aria-label="Editar">✎</button>
+    </header>
+
+    <div class="days">
+      @for (d of weekdays; track d) {
+        <span class="day" [class.day--on]="r.days.includes(d)">{{ d | weekday }}</span>
+      }
+    </div>
+
+    <div class="meta">
+      <span class="chip">{{ r.exercises.length }} ejercicios</span>
+      @for (m of muscles(r); track m) {
+        <span class="chip" [style.border-color]="$any(m) | muscle: 'color'">
+          {{ $any(m) | muscle }}
+        </span>
+      }
+    </div>
+
+    @if (r.exercises.length) {
+      <ul class="exs">
+        @for (e of r.exercises; track e.id) {
+          <li>
+            <span class="n">{{ e.exercise.name }}</span>
+            <span class="t dim">
+              @if (e.target_sets) { {{ e.target_sets }}×{{ e.target_reps ?? '—' }} }
+              @if (e.target_weight_kg) { · {{ e.target_weight_kg }} kg }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (confirmId() === r.id) {
+      <div class="confirm">
+        <span>¿Borrar «{{ r.name }}»?</span>
+        <button class="btn btn--ghost" type="button" (click)="confirmId.set(null)">No</button>
+        <button class="btn btn--danger" type="button" (click)="remove(r.id)">Sí, borrar</button>
+      </div>
+    } @else {
+      <button class="del" type="button" (click)="confirmId.set(r.id)">Eliminar rutina</button>
+    }
+  </article>
+} @empty {
+  @if (!service.loading()) {
+    <app-empty-state
+      icon="🗓️"
+      title="Sin rutinas todavía"
+      text="Crea una rutina, asígnala a los días que la entrenas y cárgala de un toque."
+    >
+      <button class="btn btn--primary" type="button" (click)="editing.set(null)">Crear rutina</button>
+    </app-empty-state>
+  }
+}
+
+@if (editing() !== undefined) {
+  <app-routine-editor [routine]="editing() ?? null" (close)="editing.set(undefined)" />
+}
