@@ -1,0 +1,80 @@
+# https://docs.github.com/get-started/getting-started-with-git/ignoring-files
+
+# --- Dependencias ------------------------------------------------------------
+/node_modules
+.pnpm-store/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.yarn/
+
+# --- Salida de compilación y cachés ------------------------------------------
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/.angular
+/coverage
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+/test-results
+/playwright-report
+
+# --- Supabase ----------------------------------------------------------------
+# Migraciones y documentación del backend: se gestionan fuera del repo.
+/supabase
+
+# --- Secretos y configuración local ------------------------------------------
+# Las credenciales de Supabase no se versionan: en CI las genera scripts/set-env.mjs
+# a partir de los secrets. Para trabajar en local, copia environment.example.ts.
+/src/environments/environment.ts
+
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.p12
+*.keystore
+secrets.json
+
+# --- Despliegue --------------------------------------------------------------
+.vercel
+.netlify
+.firebase/
+.wrangler/
+
+# --- Editores ----------------------------------------------------------------
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/*
+*.swp
+*.swo
+*~
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# --- Varios ------------------------------------------------------------------
+.sass-cache/
+/connect.lock
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# --- Ficheros de sistema -----------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
