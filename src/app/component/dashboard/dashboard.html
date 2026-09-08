@@ -1,0 +1,142 @@
+<header class="top">
+  <div>
+    <p class="label">{{ greeting() }}</p>
+    <h1>{{ auth.displayName() }}</h1>
+  </div>
+  @if (metrics(); as m) {
+    <div class="streak" [class.streak--on]="m.streak > 0" title="Días seguidos entrenando">
+      <span class="flame">🔥</span>
+      <span class="num">{{ m.streak }}</span>
+    </div>
+  }
+</header>
+
+<!-- Selector de día -->
+<div class="daybar glass-soft">
+  <button class="nav" type="button" (click)="shiftDay(-1)" aria-label="Día anterior">‹</button>
+  <button class="day" type="button" (click)="goToday()">
+    <span class="num">{{ date() | smartDate }}</span>
+    @if (!isToday()) {
+      <span class="back">volver a hoy</span>
+    }
+  </button>
+  <button class="nav" type="button" (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente">›</button>
+</div>
+
+@if (metrics(); as m) {
+  <!-- Resumen del día -->
+  <section class="hero glass-card">
+    <p class="label">Volumen del día</p>
+    <p class="big num">{{ m.today?.volume_kg ?? 0 | weight }}</p>
+
+    <div class="stats">
+      <div>
+        <span class="num">{{ m.today?.total_sets ?? 0 }}</span>
+        <span class="label">series</span>
+      </div>
+      <div>
+        <span class="num">{{ m.today?.total_reps ?? 0 }}</span>
+        <span class="label">reps</span>
+      </div>
+      <div>
+        <span class="num">{{ m.today?.exercises ?? 0 }}</span>
+        <span class="label">ejercicios</span>
+      </div>
+      <div>
+        <span class="num">{{ m.today?.duration_seconds ?? 0 | duration: 'compact' }}</span>
+        <span class="label">tiempo</span>
+      </div>
+    </div>
+
+    <button class="btn btn--primary btn--block" type="button" (click)="goTrain()">
+      {{ (m.today?.total_sets ?? 0) > 0 ? 'Seguir entrenando' : 'Empezar entreno' }}
+    </button>
+  </section>
+
+  <!-- Récords del día -->
+  @if (m.records.length) {
+    <section class="records">
+      <div class="scroll-x">
+        @for (r of m.records; track r.exercise_id) {
+          <div class="record">
+            <span class="tag">🏆 Récord</span>
+            <strong>{{ r.exercise_name }}</strong>
+            <span class="num accent">{{ r.est_1rm_kg | weight }} <small>1RM est.</small></span>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Volumen semanal -->
+  <section class="glass-card">
+    <div class="card-head">
+      <h2>Últimos 7 días</h2>
+      <span class="label">volumen</span>
+    </div>
+    <app-chart [config]="weekChart()" [height]="170" label="Volumen de los últimos siete días" />
+  </section>
+
+  <!-- Reparto muscular -->
+  @if (m.muscles.length) {
+    <section class="glass-card split">
+      <div class="card-head">
+        <h2>Reparto del día</h2>
+        <span class="label">por músculo</span>
+      </div>
+      <div class="split-body">
+        <app-chart [config]="muscleChart()" [height]="150" label="Reparto de volumen por grupo muscular" />
+        <ul class="legend">
+          @for (l of muscleLegend(); track l.group) {
+            <li>
+              <i [style.background]="l.group | muscle: 'color'"></i>
+              <span>{{ l.group | muscle }}</span>
+              <b class="num">{{ l.pct }}%</b>
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+
+  <!-- Detalle por ejercicio -->
+  @if (blocks().length) {
+    <section class="glass-card">
+      <div class="card-head">
+        <h2>Ejercicios</h2>
+        <span class="label">{{ blocks().length }}</span>
+      </div>
+      <ul class="exlist">
+        @for (b of blocks(); track b.exercise.id) {
+          <li>
+            <i class="bullet" [style.background]="b.exercise.muscle_group | muscle: 'color'"></i>
+            <div class="ex">
+              <strong>{{ b.exercise.name }}</strong>
+              <span class="dim">
+                {{ b.sets.length }} series · {{ b.exercise.muscle_group | muscle }}
+              </span>
+            </div>
+            <div class="top">
+              @if (b.topWeightKg !== null) {
+                <span class="num">{{ b.topWeightKg | weight }}</span>
+              } @else if (b.totalSeconds) {
+                <span class="num">{{ b.totalSeconds | duration }}</span>
+              }
+              <span class="label">{{ b.volumeKg ? (b.volumeKg | weight: { decimals: 0 }) : '—' }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  } @else if (!loading()) {
+    <app-empty-state
+      icon="🏋️"
+      title="Sin datos este día"
+      text="Registra tus series y aquí verás el volumen, el reparto muscular y tus récords."
+    >
+      <button class="btn btn--ghost" type="button" (click)="goTrain()">Registrar entreno</button>
+    </app-empty-state>
+  }
+} @else if (loading()) {
+  <div class="skeleton glass-card"></div>
+}
