@@ -1,0 +1,84 @@
+@use 'glass' as *;
+
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 6, 14, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade 0.24s var(--ease-out);
+}
+
+.sheet {
+  @include glass(var(--r-xl) var(--r-xl) 0 0, var(--glass-bg-strong));
+  position: relative;
+  width: min(var(--app-max), 100%);
+  margin: 0 auto;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--safe-bottom);
+  animation: up 0.34s var(--ease-spring);
+  border-bottom: 0;
+}
+
+.head {
+  padding: var(--sp-3) var(--sp-5) var(--sp-3);
+  flex: 0 0 auto;
+
+  .grabber {
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 0 auto var(--sp-3);
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  p { font-size: 13px; margin-top: 2px; }
+}
+
+.x {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font-size: 13px;
+  color: var(--text-2);
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--glass-border);
+}
+
+.body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--sp-2) var(--sp-5) var(--sp-4);
+  overscroll-behavior: contain;
+}
+
+.foot:not(:empty) {
+  flex: 0 0 auto;
+  padding: var(--sp-3) var(--sp-5) var(--sp-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.05));
+}
+
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
