@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Exercise, ExerciseBlock, Workout, WorkoutSet } from '../models/db';
-import { toISODate } from '../models/ui';
+import { CardioIntensity, Exercise, ExerciseBlock, Workout, WorkoutSet } from '../models/db';
+import { INTENSITY_META, toISODate } from '../models/ui';
 import { AuthService } from './auth.service';
 import { ExerciseService } from './exercise.service';
 import { SupabaseService } from './supabase.service';
@@ -103,6 +103,7 @@ export class WorkoutService {
         duration_seconds: values.duration_seconds ?? null,
         distance_m: values.distance_m ?? null,
         rpe: values.rpe ?? null,
+        intensity: values.intensity ?? null,
         is_warmup: values.is_warmup ?? false,
         notes: values.notes ?? null,
       })
@@ -186,7 +187,10 @@ export class WorkoutService {
   // -- internos ---------------------------------------------------------------
 
   private emptyBlock(exercise: Exercise): ExerciseBlock {
-    return { exercise, sets: [], volumeKg: 0, topWeightKg: null, totalReps: 0, totalSeconds: 0 };
+    return {
+      exercise, sets: [], volumeKg: 0, topWeightKg: null,
+      totalReps: 0, totalSeconds: 0, topIntensity: null,
+    };
   }
 
   /** Reaplica una transformación sobre todas las series y recalcula los agregados. */
@@ -220,6 +224,12 @@ export class WorkoutService {
           ),
           totalReps: working.reduce((t, s) => t + (s.reps ?? 0), 0),
           totalSeconds: ordered.reduce((t, s) => t + (s.duration_seconds ?? 0), 0),
+          topIntensity: ordered.reduce<CardioIntensity | null>(
+            (top, s) => (s.intensity && (!top || INTENSITY_META[s.intensity].level > INTENSITY_META[top].level)
+              ? s.intensity
+              : top),
+            null,
+          ),
         };
       });
   }

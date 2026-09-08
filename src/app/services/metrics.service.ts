@@ -1,5 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { DailySummary, ExerciseProgress, MuscleVolume, PersonalRecord } from '../models/db';
+import {
+  CardioDaily,
+  CardioProgress,
+  DailySummary,
+  ExerciseProgress,
+  MuscleVolume,
+  PersonalRecord,
+} from '../models/db';
 import { addDays, toISODate } from '../models/ui';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
@@ -11,6 +18,8 @@ export interface DayMetrics {
   muscles: MuscleVolume[];    // reparto del día
   records: PersonalRecord[];  // récords logrados hoy
   streak: number;             // días consecutivos entrenando
+  cardio: CardioDaily | null; // tiempo de cardio del día, por intensidad
+  cardioWeek: number[];       // segundos de cardio de los últimos 7 días
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,7 +40,7 @@ export class MetricsService {
     try {
       const from = addDays(date, -29);
 
-      const [summaries, muscles, records] = await Promise.all([
+      const [summaries, muscles, records, cardio] = await Promise.all([
         this.sb.client
           .from('v_daily_summary')
           .select('*')
@@ -40,6 +49,11 @@ export class MetricsService {
           .order('date'),
         this.sb.client.from('v_muscle_volume').select('*').eq('date', date),
         this.sb.client.from('v_personal_records').select('*').eq('achieved_on', date),
+        this.sb.client
+          .from('v_cardio_daily')
+          .select('*')
+          .gte('date', addDays(date, -6))
+          .lte('date', date),
       ]);
 
       const all = (summaries.data ?? []) as DailySummary[];
@@ -55,12 +69,17 @@ export class MetricsService {
         );
       });
 
+      const cardioRows = (cardio.data ?? []) as CardioDaily[];
+      const cardioByDate = new Map(cardioRows.map((c) => [c.date, c]));
+
       this._metrics.set({
         today: byDate.get(date) ?? null,
         week,
         muscles: (muscles.data ?? []) as MuscleVolume[],
         records: (records.data ?? []) as PersonalRecord[],
         streak: this.streak(byDate, date),
+        cardio: cardioByDate.get(date) ?? null,
+        cardioWeek: week.map((d) => Number(cardioByDate.get(d.date)?.seconds ?? 0)),
       });
     } finally {
       this._loading.set(false);
@@ -76,6 +95,17 @@ export class MetricsService {
       .gte('date', addDays(toISODate(), -days))
       .order('date');
     return (data ?? []) as ExerciseProgress[];
+  }
+
+  /** Evolución de un ejercicio de cardio: minutos por día. */
+  async cardioProgress(exerciseId: string, days = 90): Promise<CardioProgress[]> {
+    const { data } = await this.sb.client
+      .from('v_cardio_progress')
+      .select('*')
+      .eq('exercise_id', exerciseId)
+      .gte('date', addDays(toISODate(), -days))
+      .order('date');
+    return (data ?? []) as CardioProgress[];
   }
 
   async personalRecords(): Promise<PersonalRecord[]> {

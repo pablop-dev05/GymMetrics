@@ -1,5 +1,5 @@
 import { computed, Injectable, inject, signal } from '@angular/core';
-import { Exercise, Routine, RoutineExercise, RoutineFull } from '../models/db';
+import { CardioIntensity, Exercise, Routine, RoutineExercise, RoutineFull } from '../models/db';
 import { AuthService } from './auth.service';
 import { ExerciseService } from './exercise.service';
 import { SupabaseService } from './supabase.service';
@@ -11,6 +11,8 @@ export interface RoutineExerciseDraft {
   target_reps: number | null;
   target_weight_kg: number | null;
   target_duration_seconds: number | null;
+  /** Solo en cardio. */
+  target_intensity: CardioIntensity | null;
   rest_seconds: number | null;
 }
 
