@@ -1,0 +1,112 @@
+<app-modal [title]="title()" subtitle="Días, ejercicios y objetivos" (close)="close.emit()">
+  <div class="form">
+    <label>
+      <span class="label">Nombre</span>
+      <input name="name" [(ngModel)]="name" placeholder="Empuje · Pecho y hombro" />
+    </label>
+
+    <label>
+      <span class="label">Notas</span>
+      <input name="description" [(ngModel)]="description" placeholder="Opcional" />
+    </label>
+
+    <div class="field">
+      <span class="label">Color</span>
+      <div class="swatches">
+        @for (c of colors; track c) {
+          <button
+            type="button"
+            class="sw"
+            [class.sw--on]="color() === c"
+            [style.background]="c"
+            [attr.aria-label]="'Color ' + c"
+            (click)="color.set(c)"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label">Días de la semana</span>
+      <div class="days">
+        @for (d of weekdays; track d) {
+          <button
+            type="button"
+            class="day"
+            [class.day--on]="days().includes(d)"
+            [style.--tint]="color()"
+            (click)="toggleDay(d)"
+          >
+            {{ d | weekday }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label">Ejercicios ({{ items().length }})</span>
+
+      @for (it of items(); track it.exercise_id; let i = $index) {
+        <div class="item">
+          <div class="head">
+            <i class="dot" [style.background]="it.exercise.muscle_group | muscle: 'color'"></i>
+            <strong>{{ it.exercise.name }}</strong>
+            <div class="ops">
+              <button type="button" (click)="move(i, -1)" [disabled]="i === 0" aria-label="Subir">↑</button>
+              <button type="button" (click)="move(i, 1)" [disabled]="i === items().length - 1" aria-label="Bajar">↓</button>
+              <button type="button" class="rm" (click)="drop(i)" aria-label="Quitar">✕</button>
+            </div>
+          </div>
+          <div class="targets">
+            <label>
+              <span class="label">Series</span>
+              <input type="number" inputmode="numeric" [value]="it.target_sets ?? ''"
+                     (input)="patch(i, 'target_sets', $any($event.target).value)" />
+            </label>
+            @if (it.exercise.tracks_reps) {
+              <label>
+                <span class="label">Reps</span>
+                <input type="number" inputmode="numeric" [value]="it.target_reps ?? ''"
+                       (input)="patch(i, 'target_reps', $any($event.target).value)" />
+              </label>
+            }
+            @if (it.exercise.tracks_weight) {
+              <label>
+                <span class="label">Peso kg</span>
+                <input type="number" inputmode="decimal" [value]="it.target_weight_kg ?? ''"
+                       (input)="patch(i, 'target_weight_kg', $any($event.target).value)" />
+              </label>
+            }
+            @if (it.exercise.tracks_duration) {
+              <label>
+                <span class="label">Seg.</span>
+                <input type="number" inputmode="numeric" [value]="it.target_duration_seconds ?? ''"
+                       (input)="patch(i, 'target_duration_seconds', $any($event.target).value)" />
+              </label>
+            }
+            <label>
+              <span class="label">Descanso</span>
+              <input type="number" inputmode="numeric" [value]="it.rest_seconds ?? ''"
+                     (input)="patch(i, 'rest_seconds', $any($event.target).value)" />
+            </label>
+          </div>
+        </div>
+      } @empty {
+        <p class="none dim">Aún no has añadido ejercicios.</p>
+      }
+
+      <button class="add" type="button" (click)="pickerOpen.set(true)">+ Añadir ejercicio</button>
+    </div>
+  </div>
+
+  <div modal-footer class="foot">
+    <button class="btn btn--ghost" type="button" (click)="close.emit()">Cancelar</button>
+    <button class="btn btn--primary" type="button" [disabled]="saving()" (click)="submit()">
+      Guardar rutina
+    </button>
+  </div>
+</app-modal>
+
+@if (pickerOpen()) {
+  <app-exercise-picker (pick)="addExercise($event)" (close)="pickerOpen.set(false)" />
+}
