@@ -1,0 +1,127 @@
+<header class="top">
+  <div class="daynav">
+    <button class="nav" type="button" (click)="shiftDay(-1)" aria-label="Día anterior">‹</button>
+    <h1>{{ date() | smartDate }}</h1>
+    <button class="nav" type="button" (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente">›</button>
+  </div>
+  <p class="muted totals num">
+    {{ totals().sets }} series · {{ totals().volume | weight }}
+    @if (totals().seconds) { · {{ totals().seconds | duration }} }
+  </p>
+</header>
+
+@if (suggested(); as r) {
+  @if (!blocks().length) {
+    <button class="routine-cta glass-card" type="button" (click)="loadRoutine()">
+      <span class="bar" [style.background]="r.color"></span>
+      <span class="txt">
+        <em class="label">Rutina de hoy</em>
+        <strong>{{ r.name }}</strong>
+        <span class="dim">{{ r.exercises.length }} ejercicios · toca para cargarla</span>
+      </span>
+      <span class="go">↓</span>
+    </button>
+  }
+}
+
+@for (b of blocks(); track b.exercise.id) {
+  <section class="block glass-card">
+    <header class="block-head">
+      <i class="bullet" [style.background]="b.exercise.muscle_group | muscle: 'color'"></i>
+      <div class="title">
+        <h2>{{ b.exercise.name }}</h2>
+        <span class="dim">{{ b.exercise.muscle_group | muscle }} · {{ b.exercise.equipment }}</span>
+      </div>
+      <button class="kill" type="button" (click)="removeBlock(b.exercise.id)" aria-label="Quitar ejercicio">✕</button>
+    </header>
+
+    @if (b.sets.length) {
+      <table class="sets">
+        <thead>
+          <tr>
+            <th>#</th>
+            @if (b.exercise.tracks_weight) { <th>Peso</th> }
+            @if (b.exercise.tracks_reps) { <th>Reps</th> }
+            @if (b.exercise.tracks_duration) { <th>Tiempo</th> }
+            <th class="r">Vol.</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of b.sets; track s.id) {
+            <tr [class.warm]="s.is_warmup" (click)="openSet(b.exercise, s)">
+              <td class="idx">
+                @if (s.is_warmup) { <span class="w">W</span> } @else { {{ s.set_number }} }
+              </td>
+              @if (b.exercise.tracks_weight) {
+                <td class="num">{{ s.weight_kg | weight: { unit: false } }}</td>
+              }
+              @if (b.exercise.tracks_reps) {
+                <td class="num">{{ s.reps ?? '—' }}</td>
+              }
+              @if (b.exercise.tracks_duration) {
+                <td class="num">{{ s.duration_seconds | duration: 'clock' }}</td>
+              }
+              <td class="num r dim">
+                @if (!s.is_warmup && s.weight_kg && s.reps) {
+                  {{ s.weight_kg * s.reps | weight: { decimals: 0 } }}
+                } @else { — }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="block-foot">
+        <span class="label">
+          Top {{ b.topWeightKg | weight }} · Volumen {{ b.volumeKg | weight: { decimals: 0 } }}
+        </span>
+      </div>
+    } @else {
+      <p class="hint dim">Sin series todavía.</p>
+    }
+
+    <button class="add" type="button" (click)="openNewSet(b.exercise)">+ Añadir serie</button>
+  </section>
+} @empty {
+  @if (!loading()) {
+    <app-empty-state
+      icon="📝"
+      title="Nada registrado aún"
+      text="Añade el primer ejercicio y ve apuntando series, pesos y tiempos."
+    />
+  }
+}
+
+<div class="actions">
+  <button class="btn btn--ghost btn--block" type="button" (click)="pickerOpen.set(true)">
+    + Añadir ejercicio
+  </button>
+  @if (blocks().length) {
+    <button class="btn btn--violet btn--block" type="button" (click)="finish()">Terminar entreno</button>
+  }
+</div>
+
+<!-- Cronómetro de descanso -->
+@if (resting()) {
+  <div class="rest">
+    <span class="pulse"></span>
+    <span class="num">{{ restSeconds() | duration: 'clock' }}</span>
+    <span class="label">descanso</span>
+    <button type="button" (click)="stopRest()" aria-label="Parar descanso">✕</button>
+  </div>
+}
+
+@if (pickerOpen()) {
+  <app-exercise-picker (pick)="onPick($event)" (close)="pickerOpen.set(false)" />
+}
+
+@if (editor(); as ctx) {
+  <app-set-editor
+    [exercise]="ctx.exercise"
+    [set]="ctx.set"
+    [previous]="ctx.previous"
+    (save)="saveSet($event)"
+    (remove)="deleteSet($event)"
+    (close)="editor.set(null)"
+  />
+}
