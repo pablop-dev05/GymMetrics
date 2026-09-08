@@ -1,0 +1,85 @@
+<div class="page">
+  <header class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M6.5 8v8M17.5 8v8M3 10v4M21 10v4M6.5 12h11"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+      </svg>
+    </div>
+    <h1>Gym<span>Metrics</span></h1>
+    <p class="muted">Cada serie cuenta. Mídelas todas.</p>
+  </header>
+
+  @if (!sb.configured) {
+    <div class="notice">
+      Falta configurar Supabase en <code>src/environments/environment.ts</code>.
+    </div>
+  }
+
+  <form class="glass-card card" (ngSubmit)="submit()">
+    @if (signupEnabled) {
+      <div class="switch" role="tablist">
+        <span class="pill" [class.pill--right]="mode() === 'signup'"></span>
+        <button type="button" role="tab" [attr.aria-selected]="mode() === 'login'" (click)="setMode('login')">
+          Entrar
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="mode() === 'signup'" (click)="setMode('signup')">
+          Crear cuenta
+        </button>
+      </div>
+    } @else {
+      <h2 class="only-login">Entrar</h2>
+    }
+
+    @if (signupEnabled && mode() === 'signup') {
+      <label>
+        <span class="label">Nombre</span>
+        <input name="name" [(ngModel)]="name" autocomplete="nickname" placeholder="Cómo te llamamos" />
+      </label>
+    }
+
+    <label>
+      <span class="label">Email</span>
+      <input
+        name="email"
+        type="email"
+        inputmode="email"
+        autocapitalize="off"
+        autocomplete="email"
+        [(ngModel)]="email"
+        placeholder="tu@email.com"
+      />
+    </label>
+
+    <label>
+      <span class="label">Contraseña</span>
+      <input
+        name="password"
+        type="password"
+        [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+        [(ngModel)]="password"
+        placeholder="Mínimo 6 caracteres"
+      />
+    </label>
+
+    @if (error()) {
+      <p class="err">{{ error() }}</p>
+    }
+
+    <button class="btn btn--primary btn--block" type="submit" [disabled]="busy()">
+      {{ busy() ? 'Un momento…' : mode() === 'login' ? 'Entrar' : 'Crear cuenta' }}
+    </button>
+
+    @if (mode() === 'login') {
+      <button class="link" type="button" (click)="forgot()">He olvidado la contraseña</button>
+    }
+  </form>
+
+  <p class="foot dim">
+    @if (signupEnabled) {
+      Tus datos se guardan en tu cuenta de Supabase.
+    } @else {
+      El registro está cerrado por ahora. Pide acceso al administrador.
+    }
+  </p>
+</div>
