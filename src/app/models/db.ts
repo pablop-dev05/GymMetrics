@@ -13,6 +13,9 @@ export type Equipment =
 
 export type ExerciseKind = 'fuerza' | 'cardio' | 'isometrico';
 
+/** Intensidad percibida del cardio. El orden importa: de menor a mayor esfuerzo. */
+export type CardioIntensity = 'suave' | 'moderada' | 'vigorosa' | 'maxima';
+
 export interface Profile {
   id: string;
   display_name: string;
@@ -68,6 +71,7 @@ export interface RoutineExercise {
   target_reps: number | null;
   target_weight_kg: number | null;
   target_duration_seconds: number | null;
+  target_intensity: CardioIntensity | null;
   rest_seconds: number | null;
   notes: string | null;
   created_at: string;
@@ -104,6 +108,8 @@ export interface WorkoutSet {
   distance_m: number | null;
   rest_seconds: number | null;
   rpe: number | null;
+  /** Solo en cardio; en fuerza el esfuerzo se anota en `rpe`. */
+  intensity: CardioIntensity | null;
   is_warmup: boolean;
   completed: boolean;
   notes: string | null;
@@ -111,7 +117,7 @@ export interface WorkoutSet {
   created_at: string;
 }
 
-/** Series de un mismo ejercicio dentro de un entreno. */
+/** Series (o sesiones de cardio) de un mismo ejercicio dentro de un entreno. */
 export interface ExerciseBlock {
   exercise: Exercise;
   sets: WorkoutSet[];
@@ -119,6 +125,8 @@ export interface ExerciseBlock {
   topWeightKg: number | null;
   totalReps: number;
   totalSeconds: number;
+  /** Intensidad más alta registrada, solo en cardio. */
+  topIntensity: CardioIntensity | null;
 }
 
 // ---- Vistas de métricas -----------------------------------------------------
@@ -153,6 +161,29 @@ export interface MuscleVolume {
   muscle_group: MuscleGroup;
   volume_kg: number;
   sets: number;
+}
+
+export interface CardioDaily {
+  user_id: string;
+  date: string;
+  sesiones: number;
+  ejercicios: number;
+  seconds: number;
+  seconds_suave: number;
+  seconds_moderada: number;
+  seconds_vigorosa: number;
+  seconds_maxima: number;
+}
+
+export interface CardioProgress {
+  user_id: string;
+  exercise_id: string;
+  exercise_name: string;
+  date: string;
+  sesiones: number;
+  seconds: number;
+  best_seconds: number;
+  top_intensity: CardioIntensity | null;
 }
 
 export interface PersonalRecord {

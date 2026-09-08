@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DurationPipe } from './duration.pipe';
+import { IntensityPipe } from './intensity.pipe';
 import { WeekdayPipe } from './weekday.pipe';
 import { SmartDatePipe } from './smart-date.pipe';
-import { addDays, toISODate, weekdayIndex } from '../models/ui';
+import { addDays, INTENSITIES, INTENSITY_META, toISODate, weekdayIndex } from '../models/ui';
 
 describe('DurationPipe', () => {
   const pipe = new DurationPipe();
@@ -47,5 +48,27 @@ describe('helpers de fecha', () => {
   it('addDays cruza el cambio de mes', () => {
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01');
     expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+  });
+});
+
+describe('IntensityPipe', () => {
+  const pipe = new IntensityPipe();
+
+  it('traduce la intensidad a etiqueta, pista y color', () => {
+    expect(pipe.transform('vigorosa')).toBe('Vigorosa');
+    expect(pipe.transform('suave', 'hint')).toBe('Puedes conversar');
+    expect(pipe.transform('maxima', 'color')).toBe('#ff6b6b');
+  });
+
+  it('devuelve un marcador cuando no hay intensidad', () => {
+    expect(pipe.transform(null)).toBe('—');
+  });
+});
+
+describe('escala de intensidad', () => {
+  it('va de menor a mayor esfuerzo, como el enum de Postgres', () => {
+    const levels = INTENSITIES.map((i) => INTENSITY_META[i].level);
+    expect(levels).toEqual([1, 2, 3, 4]);
+    expect(INTENSITIES).toEqual(['suave', 'moderada', 'vigorosa', 'maxima']);
   });
 });
