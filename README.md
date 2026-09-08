@@ -97,6 +97,9 @@ Las pantallas se cargan con `loadComponent`, así que cada una viaja en su propi
 
 ## Cómo funciona
 
+- **El cardio se mide en tiempo e intensidad**, nunca en peso ni repeticiones, y sin
+  calorías. La app trae cronómetro y una escala de cuatro niveles basada en la prueba
+  del habla; el servidor lo hace cumplir con un trigger.
 - **Pesos en kg siempre en base de datos.** La conversión a libras es de presentación
   (`WeightPipe` y el editor de series), según `profiles.unit`.
 - **Las métricas se calculan en Postgres**, no en el cliente: las vistas `v_daily_summary`,

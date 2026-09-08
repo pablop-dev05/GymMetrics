@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Exercise, RoutineFull } from '../../models/db';
-import { WEEKDAYS } from '../../models/ui';
+import { CardioIntensity, Exercise, RoutineFull } from '../../models/db';
+import { INTENSITIES, WEEKDAYS } from '../../models/ui';
 import { RoutineExerciseDraft, RoutineService } from '../../services/routine.service';
 import { ToastService } from '../../services/toast.service';
+import { IntensityPipe } from '../../pipes/intensity.pipe';
 import { MusclePipe } from '../../pipes/muscle.pipe';
 import { WeekdayPipe } from '../../pipes/weekday.pipe';
 import { ExercisePicker } from '../exercise-picker/exercise-picker';
@@ -14,7 +15,7 @@ const COLORS = ['#38e2c4', '#7c5cff', '#ff6b6b', '#ffb347', '#b6ff5c', '#5cc8ff'
 /** Modal de alta/edición de rutina: días, color y ejercicios con sus objetivos. */
 @Component({
   selector: 'app-routine-editor',
-  imports: [FormsModule, Modal, ExercisePicker, MusclePipe, WeekdayPipe],
+  imports: [FormsModule, Modal, ExercisePicker, IntensityPipe, MusclePipe, WeekdayPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './routine-editor.html',
   styleUrl: './routine-editor.scss',
@@ -29,6 +30,7 @@ export class RoutineEditor {
 
   protected readonly colors = COLORS;
   protected readonly weekdays = WEEKDAYS.map((_, i) => i);
+  protected readonly intensities = INTENSITIES;
   protected readonly pickerOpen = signal(false);
   protected readonly saving = signal(false);
 
@@ -62,6 +64,7 @@ export class RoutineEditor {
         target_reps: e.target_reps,
         target_weight_kg: e.target_weight_kg,
         target_duration_seconds: e.target_duration_seconds,
+        target_intensity: e.target_intensity,
         rest_seconds: e.rest_seconds,
       })),
     );
@@ -77,16 +80,19 @@ export class RoutineEditor {
       this.toast.show('Ese ejercicio ya está en la rutina');
       return;
     }
+    const isCardio = exercise.kind === 'cardio';
     this.items.update((list) => [
       ...list,
       {
         exercise,
         exercise_id: exercise.id,
-        target_sets: 4,
+        // El cardio es una sesión continua: ni series ni repeticiones.
+        target_sets: isCardio ? 1 : 4,
         target_reps: exercise.tracks_reps ? 10 : null,
         target_weight_kg: null,
-        target_duration_seconds: exercise.tracks_duration ? 60 : null,
-        rest_seconds: 90,
+        target_duration_seconds: isCardio ? 20 * 60 : exercise.tracks_duration ? 60 : null,
+        target_intensity: isCardio ? 'moderada' : null,
+        rest_seconds: isCardio ? null : 90,
       },
     ]);
   }
@@ -96,6 +102,30 @@ export class RoutineEditor {
     this.items.update((list) =>
       list.map((it, i) =>
         i === index ? { ...it, [field]: value == null || Number.isNaN(value) ? null : value } : it,
+      ),
+    );
+  }
+
+  /** El objetivo de cardio se escribe en minutos, pero se guarda en segundos. */
+  protected patchMinutes(index: number, raw: string): void {
+    const minutes = raw === '' ? null : Number(raw);
+    this.items.update((list) =>
+      list.map((it, i) =>
+        i === index
+          ? {
+              ...it,
+              target_duration_seconds:
+                minutes == null || Number.isNaN(minutes) ? null : Math.round(minutes * 60),
+            }
+          : it,
+      ),
+    );
+  }
+
+  protected setIntensity(index: number, value: CardioIntensity): void {
+    this.items.update((list) =>
+      list.map((it, i) =>
+        i === index ? { ...it, target_intensity: it.target_intensity === value ? null : value } : it,
       ),
     );
   }

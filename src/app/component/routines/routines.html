@@ -61,8 +61,13 @@
           <li>
             <span class="n">{{ e.exercise.name }}</span>
             <span class="t dim">
-              @if (e.target_sets) { {{ e.target_sets }}×{{ e.target_reps ?? '—' }} }
-              @if (e.target_weight_kg) { · {{ e.target_weight_kg }} kg }
+              @if (e.exercise.kind === 'cardio') {
+                {{ e.target_duration_seconds | duration }}
+                @if (e.target_intensity) { · {{ e.target_intensity | intensity }} }
+              } @else {
+                @if (e.target_sets) { {{ e.target_sets }}×{{ e.target_reps ?? '—' }} }
+                @if (e.target_weight_kg) { · {{ e.target_weight_kg }} kg }
+              }
             </span>
           </li>
         }

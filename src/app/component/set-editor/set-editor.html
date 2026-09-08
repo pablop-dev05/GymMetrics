@@ -1,117 +1,163 @@
 <app-modal
-  [title]="isEdit() ? 'Editar serie' : 'Nueva serie'"
+  [title]="isEdit() ? (isCardio() ? 'Editar sesión' : 'Editar serie') : (isCardio() ? 'Nueva sesión' : 'Nueva serie')"
   [subtitle]="exercise().name"
   (close)="close.emit()"
 >
   <div class="fields">
-    @if (exercise().tracks_weight) {
-      <div class="field">
-        <span class="label">Peso ({{ unit() }})</span>
-        <div class="stepper">
-          <button type="button" (click)="step('weight', -2.5)" aria-label="Bajar peso">−</button>
-          <input
-            class="field-num"
-            type="number"
-            inputmode="decimal"
-            step="0.5"
-            [value]="weight() ?? ''"
-            (input)="onNumber('weight', $any($event.target).value)"
-            placeholder="0"
-          />
-          <button type="button" (click)="step('weight', 2.5)" aria-label="Subir peso">+</button>
-        </div>
-        <div class="quick">
-          @for (d of [1.25, 5, 10]; track d) {
-            <button class="chip" type="button" (click)="step('weight', d)">+{{ d }}</button>
-          }
+    @if (isCardio()) {
+      <!-- CARDIO · solo tiempo e intensidad -->
+      <div class="timer" [class.timer--on]="running()">
+        <span class="label">Tiempo</span>
+        <p class="clock num">{{ seconds() ?? 0 | duration: 'clock' }}</p>
+        <div class="timer-ops">
+          <button class="btn" [class]="running() ? 'btn--danger' : 'btn--primary'" type="button" (click)="toggleTimer()">
+            {{ running() ? 'Parar' : (seconds() ? 'Reanudar' : 'Empezar') }}
+          </button>
+          <button class="btn btn--ghost" type="button" [disabled]="!seconds()" (click)="resetTimer()">
+            Reiniciar
+          </button>
         </div>
       </div>
-    }
 
-    @if (exercise().tracks_reps) {
       <div class="field">
-        <span class="label">Repeticiones</span>
+        <span class="label">Ajustar a mano (segundos)</span>
         <div class="stepper">
-          <button type="button" (click)="step('reps', -1)" aria-label="Menos reps">−</button>
+          <button type="button" (click)="step('seconds', -60)" aria-label="Un minuto menos">−</button>
           <input
             class="field-num"
             type="number"
             inputmode="numeric"
-            step="1"
-            [value]="reps() ?? ''"
-            (input)="onNumber('reps', $any($event.target).value)"
-            placeholder="0"
-          />
-          <button type="button" (click)="step('reps', 1)" aria-label="Más reps">+</button>
-        </div>
-      </div>
-    }
-
-    @if (exercise().tracks_duration) {
-      <div class="field">
-        <span class="label">Tiempo · {{ seconds() ?? 0 | duration: 'clock' }}</span>
-        <div class="stepper">
-          <button type="button" (click)="step('seconds', -15)" aria-label="Menos tiempo">−</button>
-          <input
-            class="field-num"
-            type="number"
-            inputmode="numeric"
-            step="5"
+            step="10"
             [value]="seconds() ?? ''"
             (input)="onNumber('seconds', $any($event.target).value)"
-            placeholder="segundos"
+            placeholder="0"
           />
-          <button type="button" (click)="step('seconds', 15)" aria-label="Más tiempo">+</button>
+          <button type="button" (click)="step('seconds', 60)" aria-label="Un minuto más">+</button>
         </div>
         <div class="quick">
-          @for (d of [30, 60, 300]; track d) {
-            <button class="chip" type="button" (click)="step('seconds', d)">+{{ d }}s</button>
+          @for (m of [5, 10, 20, 30]; track m) {
+            <button class="chip" type="button" (click)="step('seconds', m * 60)">+{{ m }} min</button>
           }
         </div>
       </div>
-    }
 
-    @if (exercise().tracks_distance) {
       <div class="field">
-        <span class="label">Distancia (m)</span>
-        <input
-          class="field-num"
-          type="number"
-          inputmode="decimal"
-          [value]="distance() ?? ''"
-          (input)="onNumber('distance', $any($event.target).value)"
-          placeholder="0"
-        />
+        <span class="label">Intensidad aproximada</span>
+        <div class="levels">
+          @for (i of intensities; track i) {
+            <button
+              type="button"
+              class="level"
+              [class.level--on]="intensity() === i"
+              [style.--tint]="i | intensity: 'color'"
+              (click)="intensity.set(intensity() === i ? null : i)"
+            >
+              <span class="bars" aria-hidden="true">
+                <i></i><i></i><i></i><i></i>
+              </span>
+              <strong>{{ i | intensity }}</strong>
+              <em>{{ i | intensity: 'hint' }}</em>
+            </button>
+          }
+        </div>
       </div>
-    }
+    } @else {
+      <!-- FUERZA · peso, repeticiones y, si aplica, tiempo -->
+      @if (exercise().tracks_weight) {
+        <div class="field">
+          <span class="label">Peso ({{ unit() }})</span>
+          <div class="stepper">
+            <button type="button" (click)="step('weight', -2.5)" aria-label="Bajar peso">−</button>
+            <input
+              class="field-num"
+              type="number"
+              inputmode="decimal"
+              step="0.5"
+              [value]="weight() ?? ''"
+              (input)="onNumber('weight', $any($event.target).value)"
+              placeholder="0"
+            />
+            <button type="button" (click)="step('weight', 2.5)" aria-label="Subir peso">+</button>
+          </div>
+          <div class="quick">
+            @for (d of [1.25, 5, 10]; track d) {
+              <button class="chip" type="button" (click)="step('weight', d)">+{{ d }}</button>
+            }
+          </div>
+        </div>
+      }
 
-    <div class="field">
-      <span class="label">Esfuerzo percibido (RPE)</span>
-      <div class="scroll-x">
-        @for (v of [6, 7, 7.5, 8, 8.5, 9, 9.5, 10]; track v) {
-          <button
-            class="chip"
-            type="button"
-            [class.chip--active]="rpe() === v"
-            (click)="rpe.set(rpe() === v ? null : v)"
-          >
-            {{ v }}
-          </button>
-        }
+      @if (exercise().tracks_reps) {
+        <div class="field">
+          <span class="label">Repeticiones</span>
+          <div class="stepper">
+            <button type="button" (click)="step('reps', -1)" aria-label="Menos reps">−</button>
+            <input
+              class="field-num"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              [value]="reps() ?? ''"
+              (input)="onNumber('reps', $any($event.target).value)"
+              placeholder="0"
+            />
+            <button type="button" (click)="step('reps', 1)" aria-label="Más reps">+</button>
+          </div>
+        </div>
+      }
+
+      @if (exercise().tracks_duration) {
+        <div class="field">
+          <span class="label">Tiempo · {{ seconds() ?? 0 | duration: 'clock' }}</span>
+          <div class="stepper">
+            <button type="button" (click)="step('seconds', -15)" aria-label="Menos tiempo">−</button>
+            <input
+              class="field-num"
+              type="number"
+              inputmode="numeric"
+              step="5"
+              [value]="seconds() ?? ''"
+              (input)="onNumber('seconds', $any($event.target).value)"
+              placeholder="segundos"
+            />
+            <button type="button" (click)="step('seconds', 15)" aria-label="Más tiempo">+</button>
+          </div>
+          <div class="quick">
+            @for (d of [15, 30, 60]; track d) {
+              <button class="chip" type="button" (click)="step('seconds', d)">+{{ d }}s</button>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="field">
+        <span class="label">Esfuerzo percibido (RPE)</span>
+        <div class="scroll-x">
+          @for (v of [6, 7, 7.5, 8, 8.5, 9, 9.5, 10]; track v) {
+            <button
+              class="chip"
+              type="button"
+              [class.chip--active]="rpe() === v"
+              (click)="rpe.set(rpe() === v ? null : v)"
+            >
+              {{ v }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
 
-    <label class="toggle">
-      <span>
-        <strong>Serie de calentamiento</strong>
-        <em class="dim">No cuenta para el volumen</em>
-      </span>
-      <input type="checkbox" [checked]="warmup()" (change)="warmup.set($any($event.target).checked)" />
-      <i class="track" aria-hidden="true"></i>
-    </label>
+      <label class="toggle">
+        <span>
+          <strong>Serie de calentamiento</strong>
+          <em class="dim">No cuenta para el volumen</em>
+        </span>
+        <input type="checkbox" [checked]="warmup()" (change)="warmup.set($any($event.target).checked)" />
+        <i class="track" aria-hidden="true"></i>
+      </label>
 
-    @if (volume(); as v) {
-      <p class="volume num">Volumen de la serie: <b>{{ v }} {{ unit() }}</b></p>
+      @if (volume(); as v) {
+        <p class="volume num">Volumen de la serie: <b>{{ v }} {{ unit() }}</b></p>
+      }
     }
   </div>
 
@@ -119,8 +165,8 @@
     @if (isEdit()) {
       <button class="btn btn--danger" type="button" (click)="delete()">Borrar</button>
     }
-    <button class="btn btn--primary" type="button" (click)="submit()">
-      {{ isEdit() ? 'Guardar' : 'Añadir serie' }}
+    <button class="btn btn--primary" type="button" [disabled]="!canSave()" (click)="submit()">
+      {{ isEdit() ? 'Guardar' : isCardio() ? 'Añadir sesión' : 'Añadir serie' }}
     </button>
   </div>
 </app-modal>

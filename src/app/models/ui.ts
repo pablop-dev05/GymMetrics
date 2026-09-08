@@ -1,4 +1,4 @@
-import { MuscleGroup } from './db';
+import { CardioIntensity, MuscleGroup } from './db';
 
 /** Etiquetas y color de cada grupo muscular (deben coincidir con $muscle-colors). */
 export const MUSCLE_META: Record<MuscleGroup, { label: string; color: string; icon: string }> = {
@@ -13,11 +13,27 @@ export const MUSCLE_META: Record<MuscleGroup, { label: string; color: string; ic
   gluteo:         { label: 'Glúteo',       color: '#f472b6', icon: '🍑' },
   gemelo:         { label: 'Gemelo',       color: '#22d3ee', icon: '🐆' },
   core:           { label: 'Core',         color: '#fbbf24', icon: '🧱' },
-  cardio:         { label: 'Cardio',       color: '#fb7185', icon: '❤️‍🔥' },
+  cardio:         { label: 'Cardio',       color: '#e879f9', icon: '❤️‍🔥' },
   cuerpo_completo:{ label: 'Full body',    color: '#94a3b8', icon: '🔥' },
 };
 
 export const MUSCLE_GROUPS = Object.keys(MUSCLE_META) as MuscleGroup[];
+
+/**
+ * Escala de intensidad del cardio. La referencia es la prueba del habla, que es
+ * lo único que se puede estimar sin pulsómetro.
+ */
+export const INTENSITY_META: Record<
+  CardioIntensity,
+  { label: string; hint: string; color: string; level: number }
+> = {
+  suave:    { label: 'Suave',    hint: 'Puedes conversar',      color: '#38e2c4', level: 1 },
+  moderada: { label: 'Moderada', hint: 'Frases cortas',         color: '#b6ff5c', level: 2 },
+  vigorosa: { label: 'Vigorosa', hint: 'Cuesta hablar',         color: '#ffb347', level: 3 },
+  maxima:   { label: 'Máxima',   hint: 'Al límite',             color: '#ff6b6b', level: 4 },
+};
+
+export const INTENSITIES = Object.keys(INTENSITY_META) as CardioIntensity[];
 
 export const EQUIPMENT_LABEL: Record<string, string> = {
   barra: 'Barra',

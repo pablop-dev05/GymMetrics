@@ -55,11 +55,12 @@ export class ExerciseService {
     kind: Exercise['kind'];
   }): Promise<Exercise> {
     const uid = this.auth.user()?.id;
+    // El cardio se registra solo con tiempo e intensidad: ni peso, ni reps, ni distancia.
     const tracks = {
       tracks_weight: input.kind !== 'cardio',
       tracks_reps: input.kind === 'fuerza',
       tracks_duration: input.kind !== 'fuerza',
-      tracks_distance: input.kind === 'cardio',
+      tracks_distance: false,
     };
     const { data, error } = await this.sb.client
       .from('exercises')

@@ -5,8 +5,16 @@ export type AnyChartConfig =
   | ChartConfiguration<'bar'>
   | ChartConfiguration<'line'>
   | ChartConfiguration<'doughnut'>;
-import { MuscleVolume } from '../../models/db';
-import { MUSCLE_META } from '../../models/ui';
+import { MuscleGroup } from '../../models/db';
+
+/** Una porción del reparto del día: todos los grupos pesan lo mismo. */
+export interface GroupShare {
+  group: MuscleGroup;
+  label: string;
+  color: string;
+  pct: number;
+  sets: number;
+}
 
 const GRID = 'rgba(255,255,255,0.07)';
 
@@ -76,17 +84,19 @@ export function weeklyVolumeChart(
   };
 }
 
-/** Reparto de volumen por grupo muscular del día. */
-export function muscleSplitChart(rows: MuscleVolume[]): ChartConfiguration<'doughnut'> {
-  const sorted = [...rows].sort((a, b) => b.volume_kg - a.volume_kg);
+/**
+ * Reparto del día por grupo trabajado. Cada grupo ocupa la misma porción: medirlo
+ * en kilos dejaba el cardio siempre a cero, porque no levanta peso.
+ */
+export function muscleSplitChart(shares: GroupShare[]): ChartConfiguration<'doughnut'> {
   return {
     type: 'doughnut',
     data: {
-      labels: sorted.map((r) => MUSCLE_META[r.muscle_group]?.label ?? r.muscle_group),
+      labels: shares.map((s) => s.label),
       datasets: [
         {
-          data: sorted.map((r) => Number(r.volume_kg) || r.sets),
-          backgroundColor: sorted.map((r) => MUSCLE_META[r.muscle_group]?.color ?? '#94a3b8'),
+          data: shares.map(() => 1), // porciones idénticas
+          backgroundColor: shares.map((s) => s.color),
           borderColor: 'rgba(5,7,15,0.55)',
           borderWidth: 2,
           hoverOffset: 8,
@@ -99,7 +109,13 @@ export function muscleSplitChart(rows: MuscleVolume[]): ChartConfiguration<'doug
         legend: { display: false },
         tooltip: {
           ...TOOLTIP,
-          callbacks: { label: (i) => `${i.label}: ${Math.round(Number(i.parsed)).toLocaleString('es-ES')} kg` },
+          callbacks: {
+            label: (i) => {
+              const share = shares[i.dataIndex];
+              const work = share.sets === 1 ? '1 serie' : `${share.sets} series`;
+              return `${share.label}: ${share.pct}% · ${work}`;
+            },
+          },
         },
       },
     },
