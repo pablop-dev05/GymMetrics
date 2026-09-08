@@ -1,0 +1,9 @@
+# pnpm 11 bloquea por defecto los scripts de instalación de las dependencias y
+# aborta el install si encuentra alguno sin aprobar. Estos cuatro compilan o
+# descargan un binario nativo en su postinstall y el build de Angular los necesita
+# (esbuild es el compilador; lmdb y @parcel/watcher los usa la caché del CLI).
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
