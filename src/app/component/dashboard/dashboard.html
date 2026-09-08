@@ -114,19 +114,19 @@
   </section>
 
   <!-- Reparto muscular -->
-  @if (m.muscles.length) {
+  @if (groupShares().length) {
     <section class="glass-card split">
       <div class="card-head">
         <h2>Reparto del día</h2>
-        <span class="label">por músculo</span>
+        <span class="label">por grupo</span>
       </div>
       <div class="split-body">
-        <app-chart [config]="muscleChart()" [height]="150" label="Reparto de volumen por grupo muscular" />
+        <app-chart [config]="muscleChart()" [height]="150" label="Reparto del día por grupo trabajado" />
         <ul class="legend">
-          @for (l of muscleLegend(); track l.group) {
+          @for (l of groupShares(); track l.group) {
             <li>
-              <i [style.background]="l.group | muscle: 'color'"></i>
-              <span>{{ l.group | muscle }}</span>
+              <i [style.background]="l.color"></i>
+              <span>{{ l.label }}</span>
               <b class="num">{{ l.pct }}%</b>
             </li>
           }
